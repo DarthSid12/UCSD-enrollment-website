@@ -5,6 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enrollment Predictor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .analysis-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .analysis-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 0.5rem;
+        }
+        .section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-left: 4px solid #4f46e5;
+            border-radius: 0.5rem;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        .data-list {
+            margin: 0.5rem 0;
+            padding-left: 1rem;
+        }
+        .data-list li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+        .outlook {
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+        .risk-high {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+        .risk-moderate {
+            background: #fffbeb;
+            border: 1px solid #fed7aa;
+            color: #92400e;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+        .risk-good {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+        .risk-excellent {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+        .high-risk { color: #dc2626; }
+        .moderate-risk { color: #d97706; }
+        .good-chance { color: #059669; }
+        .excellent-chance { color: #2563eb; }
+        .footer {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
@@ -72,9 +149,18 @@
         </form>
 
         <!-- Result Section -->
-        <div id="result" class="mt-6 p-4 bg-gray-200 rounded-md hidden">
-            <h2 class="text-lg font-bold">Result:</h2>
-            <pre id="result-content" class="text-gray-700"></pre>
+        <div id="result" class="mt-6 p-6 bg-white shadow-lg rounded-lg border hidden">
+            <div id="result-content" class="text-gray-700 leading-relaxed"></div>
+            
+            <!-- Toggle for raw data -->
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <button id="toggle-raw-data" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium transition-colors">
+                    Show Raw Data ▼
+                </button>
+                <div id="raw-data" class="mt-3 p-4 bg-gray-50 rounded border text-xs overflow-auto hidden">
+                    <pre id="raw-data-content" class="text-gray-600"></pre>
+                </div>
+            </div>
         </div>
     </div>
     <script>
@@ -92,14 +178,185 @@
                 .then(data => {
                     const resultSection = document.getElementById('result');
                     const resultContent = document.getElementById('result-content');
-                    resultContent.textContent = JSON.stringify(data, null, 2);
+                    const rawDataContent = document.getElementById('raw-data-content');
+                    
+                    if (data.analysis) {
+                        const analysis = data.analysis;
+                        
+                        // Clear content and build HTML step by step
+                        resultContent.innerHTML = '';
+                        
+                        // Create main container
+                        const container = document.createElement('div');
+                        container.className = 'analysis-container';
+                        
+                        // Title
+                        const title = document.createElement('h3');
+                        title.className = 'analysis-title';
+                        title.textContent = '📊 Enrollment Analysis for ' + analysis.course_info;
+                        container.appendChild(title);
+                        
+                        // Historical data section
+                        const histSection = document.createElement('div');
+                        histSection.className = 'section';
+                        
+                        const histTitle = document.createElement('h4');
+                        histTitle.className = 'section-title';
+                        histTitle.textContent = '📈 Historical Data at This Same Enrollment Time:';
+                        histSection.appendChild(histTitle);
+                        
+                        const histDesc = document.createElement('p');
+                        histDesc.textContent = 'This data shows what happened at your exact enrollment time in previous years:';
+                        histSection.appendChild(histDesc);
+                        
+                        const dataList = document.createElement('ul');
+                        dataList.className = 'data-list';
+                        
+                        // Year 1 data
+                        const year1Item = document.createElement('li');
+                        let year1Text = analysis.year_1.quarter + ': ' + analysis.year_1.enrolled + ' students enrolled out of ' + analysis.year_1.total + ' total seats (' + analysis.year_1.percentage + '% full)';
+                        if (analysis.year_1.waitlist > 0) {
+                            year1Text += ', with ' + analysis.year_1.waitlist + ' students on the waitlist';
+                        }
+                        if (analysis.year_1.available > 0) {
+                            year1Text += ', and ' + analysis.year_1.available + ' seats still available';
+                        }
+                        year1Text += '.';
+                        year1Item.innerHTML = '<strong>' + analysis.year_1.quarter + '</strong>: ' + year1Text.substring(analysis.year_1.quarter.length + 2);
+                        dataList.appendChild(year1Item);
+                        
+                        // Year 2 data
+                        const year2Item = document.createElement('li');
+                        let year2Text = analysis.year_2.quarter + ': ' + analysis.year_2.enrolled + ' students enrolled out of ' + analysis.year_2.total + ' total seats (' + analysis.year_2.percentage + '% full)';
+                        if (analysis.year_2.waitlist > 0) {
+                            year2Text += ', with ' + analysis.year_2.waitlist + ' students on the waitlist';
+                        }
+                        if (analysis.year_2.available > 0) {
+                            year2Text += ', and ' + analysis.year_2.available + ' seats still available';
+                        }
+                        year2Text += '.';
+                        year2Item.innerHTML = '<strong>' + analysis.year_2.quarter + '</strong>: ' + year2Text.substring(analysis.year_2.quarter.length + 2);
+                        dataList.appendChild(year2Item);
+                        
+                        histSection.appendChild(dataList);
+                        container.appendChild(histSection);
+                        
+                        // Competitiveness section
+                        const compSection = document.createElement('div');
+                        compSection.className = 'section';
+                        
+                        const compTitle = document.createElement('h4');
+                        compTitle.className = 'section-title';
+                        compTitle.textContent = '🎯 Course Competitiveness:';
+                        compSection.appendChild(compTitle);
+                        
+                        const compText = document.createElement('p');
+                        let competitivenessClass = '';
+                        switch(analysis.risk_level) {
+                            case 'high': competitivenessClass = 'high-risk'; break;
+                            case 'moderate': competitivenessClass = 'moderate-risk'; break;
+                            case 'good': competitivenessClass = 'good-chance'; break;
+                            default: competitivenessClass = 'excellent-chance';
+                        }
+                        
+                        compText.innerHTML = 'This course is <strong class="' + competitivenessClass + '">' + analysis.competitiveness + '</strong> and typically ';
+                        
+                        if (analysis.avg_enrollment_rate >= 95) {
+                            compText.innerHTML += 'fills up very quickly';
+                        } else if (analysis.avg_enrollment_rate >= 80) {
+                            compText.innerHTML += 'fills up before most enrollment times';
+                        } else if (analysis.avg_enrollment_rate >= 60) {
+                            compText.innerHTML += 'may have spots available during your enrollment time';
+                        } else {
+                            compText.innerHTML += 'has availability during your enrollment time';
+                        }
+                        
+                        compText.innerHTML += '. ';
+                        
+                        if (analysis.avg_waitlist_rate > 20) {
+                            compText.innerHTML += "Historically, there's been significant waitlist activity at this time, indicating high demand.";
+                        } else if (analysis.avg_waitlist_rate > 5) {
+                            compText.innerHTML += "There's typically some waitlist activity at this time, but it's manageable.";
+                        } else {
+                            compText.innerHTML += "Waitlist activity is typically minimal at this enrollment time.";
+                        }
+                        
+                        compSection.appendChild(compText);
+                        container.appendChild(compSection);
+                        
+                        // Outlook section
+                        const outlookSection = document.createElement('div');
+                        outlookSection.className = 'section';
+                        
+                        const outlookTitle = document.createElement('h4');
+                        outlookTitle.className = 'section-title';
+                        outlookTitle.textContent = '💡 Your Enrollment Outlook:';
+                        outlookSection.appendChild(outlookTitle);
+                        
+                        const outlookDiv = document.createElement('div');
+                        outlookDiv.className = 'outlook';
+                        
+                        const riskDiv = document.createElement('div');
+                        riskDiv.className = 'risk-' + analysis.risk_level;
+                        
+                        let riskIcon = '';
+                        switch(analysis.risk_level) {
+                            case 'high': riskIcon = '⚠️'; break;
+                            case 'moderate': riskIcon = '⚡'; break;
+                            case 'good': riskIcon = '✅'; break;
+                            default: riskIcon = '🎉';
+                        }
+                        
+                        riskDiv.innerHTML = riskIcon + ' <strong>' + analysis.risk_text + '</strong>';
+                        outlookDiv.appendChild(riskDiv);
+                        outlookSection.appendChild(outlookDiv);
+                        container.appendChild(outlookSection);
+                        
+                        // Footer
+                        const footer = document.createElement('div');
+                        footer.className = 'footer';
+                        footer.innerHTML = '<em>Analysis based on enrollment data from ' + analysis.year_1.quarter + ' and ' + analysis.year_2.quarter + ' at your specified enrollment time.</em>';
+                        container.appendChild(footer);
+                        
+                        resultContent.appendChild(container);
+                        
+                    } else if (data.error) {
+                        resultContent.innerHTML = '<div class="text-red-600 bg-red-50 p-4 rounded border border-red-200">❌ <strong>Error:</strong> ' + data.error + '</div>';
+                    } else {
+                        resultContent.innerHTML = '<div class="bg-yellow-50 p-4 rounded border border-yellow-200"><strong>Unexpected response format</strong></div>';
+                    }
+                    
+                    // Store raw data for toggle functionality
+                    if (data.raw_data) {
+                        rawDataContent.textContent = JSON.stringify(data.raw_data, null, 2);
+                    } else {
+                        rawDataContent.textContent = JSON.stringify(data, null, 2);
+                    }
+                    
                     resultSection.classList.remove('hidden');
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while fetching the data.');
+                    const resultSection = document.getElementById('result');
+                    const resultContent = document.getElementById('result-content');
+                    resultContent.innerHTML = '<div class="text-red-600 bg-red-50 p-4 rounded border border-red-200">❌ <strong>An error occurred while fetching the data:</strong> ' + error.message + '</div>';
+                    resultSection.classList.remove('hidden');
                 });
         });
-    </script></script>
+
+        // Toggle raw data visibility
+        document.getElementById('toggle-raw-data').addEventListener('click', () => {
+            const rawDataDiv = document.getElementById('raw-data');
+            const toggleButton = document.getElementById('toggle-raw-data');
+            
+            if (rawDataDiv.classList.contains('hidden')) {
+                rawDataDiv.classList.remove('hidden');
+                toggleButton.textContent = 'Hide Raw Data ▲';
+            } else {
+                rawDataDiv.classList.add('hidden');
+                toggleButton.textContent = 'Show Raw Data ▼';
+            }
+        });
+    </script>
 </body>
 </html>

@@ -3,165 +3,643 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enrollment Predictor</title>
+    <title>UCSD Enrollment Predictor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        .analysis-container {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root {
+            --ucsd-blue: #182B49;
+            --ucsd-navy: #003B5C;
+            --ucsd-gold: #FFCD00;
+            --ucsd-light-blue: #6F96C4;
+            --ucsd-teal: #00C4D6;
+            --success-green: #059669;
+            --warning-orange: #d97706;
+            --danger-red: #dc2626;
+            --neutral-gray: #6b7280;
         }
-        .analysis-title {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #4f46e5;
-            padding-bottom: 0.5rem;
+        
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        .section {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: #f8fafc;
-            border-left: 4px solid #4f46e5;
-            border-radius: 0.5rem;
+        
+        body {
+            background: linear-gradient(135deg, var(--ucsd-blue) 0%, var(--ucsd-navy) 50%, var(--ucsd-light-blue) 100%);
+            min-height: 100vh;
         }
-        .section-title {
-            font-size: 1.1rem;
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .form-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .form-input:focus {
+            border-color: var(--ucsd-gold);
+            box-shadow: 0 0 0 4px rgba(255, 205, 0, 0.2);
+            background: rgba(255, 255, 255, 1);
+            outline: none;
+        }
+        
+        .form-label {
             font-weight: 600;
             color: #374151;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--ucsd-blue), var(--ucsd-navy));
+            color: white;
+            font-weight: 600;
+            padding: 16px 32px;
+            border-radius: 12px;
+            border: 2px solid var(--ucsd-gold);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(24, 43, 73, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, var(--ucsd-navy), var(--ucsd-blue));
+            box-shadow: 0 8px 25px 0 rgba(24, 43, 73, 0.4), 0 0 20px rgba(255, 205, 0, 0.3);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .analysis-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+        
+        .analysis-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--ucsd-navy);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--ucsd-gold);
+            position: relative;
+        }
+        
+        .analysis-title::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--ucsd-teal);
+            border-radius: 2px;
+        }
+        
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            border-left: 6px solid var(--ucsd-gold);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-2px);
+            border-left-color: var(--ucsd-teal);
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--ucsd-navy);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
         .data-list {
-            margin: 0.5rem 0;
-            padding-left: 1rem;
+            margin: 1rem 0;
+            padding-left: 0;
+            list-style: none;
         }
+        
         .data-list li {
-            margin-bottom: 0.5rem;
-            line-height: 1.5;
-        }
-        .outlook {
+            margin-bottom: 1rem;
             padding: 1rem;
-            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            border-left: 4px solid var(--ucsd-teal);
+            line-height: 1.6;
+            font-weight: 500;
         }
+        
         .risk-high {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 2px solid #fecaca;
+            color: var(--danger-red);
+            padding: 1.5rem;
+            border-radius: 16px;
+            font-weight: 600;
         }
+        
         .risk-moderate {
-            background: #fffbeb;
-            border: 1px solid #fed7aa;
-            color: #92400e;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 2px solid #fed7aa;
+            color: var(--warning-orange);
+            padding: 1.5rem;
+            border-radius: 16px;
+            font-weight: 600;
         }
+        
         .risk-good {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 2px solid #bbf7d0;
+            color: var(--success-green);
+            padding: 1.5rem;
+            border-radius: 16px;
+            font-weight: 600;
         }
+        
         .risk-excellent {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1e40af;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 2px solid #bfdbfe;
+            color: var(--ucsd-blue);
+            padding: 1.5rem;
+            border-radius: 16px;
+            font-weight: 600;
         }
-        .high-risk { color: #dc2626; }
-        .moderate-risk { color: #d97706; }
-        .good-chance { color: #059669; }
-        .excellent-chance { color: #2563eb; }
+        
+        .high-risk { color: var(--danger-red); font-weight: 700; }
+        .moderate-risk { color: var(--warning-orange); font-weight: 700; }
+        .good-chance { color: var(--success-green); font-weight: 700; }
+        .excellent-chance { color: var(--ucsd-blue); font-weight: 700; }
+        
         .footer {
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e5e7eb;
-            color: #6b7280;
-            font-size: 0.9rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e5e7eb;
+            color: var(--neutral-gray);
+            font-size: 0.95rem;
+            text-align: center;
+            font-style: italic;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .analysis-container {
+                padding: 1rem;
+            }
+            
+            .section {
+                padding: 1rem;
+            }
+            
+            .glass {
+                margin: 0 0.5rem;
+            }
+            
+            .min-h-screen {
+                padding: 2px;
+            }
+            
+            .btn-primary {
+                width: 100%;
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+        }
+        
+        .toggle-btn {
+            background: linear-gradient(135deg, #6b7280, #9ca3af);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .toggle-btn:hover {
+            background: linear-gradient(135deg, #4b5563, #6b7280);
+            transform: translateY(-1px);
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-        <h1 class="text-2xl font-bold text-center mb-6">Enrollment Predictor</h1>
-        <form id="enrollment-form" class="space-y-4">
-            <!-- Enrollment Time -->
-            <div>
-                <label for="enrollment_time" class="block text-sm font-medium text-gray-700">Enrollment Time</label>
-                <input type="datetime-local" id="enrollment_time" name="enrollment_time" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+<body>
+    <div class="min-h-screen py-4 px-2">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <header class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-4 mb-6 mx-1 sm:mx-2 rounded-3xl">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-graduation-cap text-blue-900 text-lg sm:text-xl"></i>
+                            </div>
+                            <div>
+                                <h1 class="text-lg sm:text-2xl md:text-3xl font-bold text-yellow-400">UCSD Enrollment Predictor</h1>
+                                <p class="text-gray-300 text-xs sm:text-sm hidden sm:block">Analyze enrollment patterns using historical data</p>
+                            </div>
+                        </div>
+                        
+                        <nav class="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
+                            <a href="#analyze-form" class="hover:text-yellow-400 transition-colors flex items-center gap-1 sm:gap-2 px-2 py-1 rounded">
+                                <i class="fas fa-search text-xs"></i><span class="hidden sm:inline">Analyze</span></a>
+                            <a href="#how-it-works" class="hover:text-yellow-400 transition-colors flex items-center gap-1 sm:gap-2 px-2 py-1 rounded">
+                                <i class="fas fa-lightbulb text-xs"></i><span class="hidden sm:inline">How It Works</span></a>
+                            <a href="#enrollment-tips" class="hover:text-yellow-400 transition-colors flex items-center gap-1 sm:gap-2 px-2 py-1 rounded">
+                                <i class="fas fa-tips text-xs"></i><span class="hidden sm:inline">Tips</span></a>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Form Container -->
+            <div id="analyze-form" class="glass rounded-3xl p-4 sm:p-6 mb-6">
+                <div class="text-center mb-4 sm:mb-6">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+                        <i class="fas fa-search mr-2 sm:mr-3" style="color: var(--ucsd-teal)"></i>
+                        Analyze Your Course
+                    </h2>
+                    <p class="text-sm sm:text-base text-gray-600">Enter your details below to analyze historical enrollment data for your course</p>
+                </div>
+                
+                <form id="enrollment-form" class="space-y-4 sm:space-y-6">
+                    <div class="form-grid">
+                        <!-- Enrollment Time -->
+                        <div>
+                            <label for="enrollment_time" class="form-label">
+                                <i class="fas fa-clock" style="color: var(--ucsd-teal)"></i>
+                                Enrollment Time
+                            </label>
+                            <input type="datetime-local" id="enrollment_time" name="enrollment_time" class="form-input w-full" required>
+                        </div>
+
+                        <!-- Session (locked to Winter) -->
+                        <div>
+                            <label for="session" class="form-label">
+                                <i class="fas fa-calendar" style="color: var(--ucsd-gold)"></i>
+                                Session
+                            </label>
+                            <select id="session" name="session" class="form-input w-full bg-gray-100 cursor-not-allowed" disabled required>
+                                <option value="Winter" selected>Winter</option>
+                            </select>
+                        </div>
+
+                        <!-- Year (locked to 2026) -->
+                        <div>
+                            <label for="enrollment_year" class="form-label">
+                                <i class="fas fa-calendar-alt" style="color: var(--ucsd-gold)"></i>
+                                Year
+                            </label>
+                            <select id="enrollment_year" name="enrollment_year" class="form-input w-full bg-gray-100 cursor-not-allowed" disabled required>
+                                <option value="2026" selected>2026</option>
+                            </select>
+                        </div>
+
+                        <!-- Field -->
+                        <div>
+                            <label for="field" class="form-label">
+                                <i class="fas fa-book" style="color: var(--ucsd-navy)"></i>
+                                Department
+                            </label>
+                            <select id="field" name="field" class="form-input w-full" required>
+                                <option value="">Select a department</option>
+                                <script>
+                                    const fields = ["AAS","AESE","AIP","ANAR","ANBI","ANES","ANSC","ANTH","AUD","AWP","BENG","BGGN","BGJC","BGRD","BGSE","BIBC","BICD","BIEB","BILD","BIMM","BIOM","BIPN","BISP","BNFO","CAT","CCE","CCS","CENG","CGS","CHEM","CHIN","CLAS","CLIN","CLRE","CMM","COGR","COGS","COMM","CSE","CSS","DDPM","DERM","DOC","DSC","DSE","DSGN","ECE","ECON","EDS","EMED","ENG","ENVR","ERC","ESYS","ETHN","ETIM","EXPR","FILM","FMPH","FPM","GLBH","GSS","HDS","HIAF","HIEA","HIEU","HIGL","HIGR","HILA","HILD","HINE","HISC","HITO","HIUS","HUM","INTL","JAPN","JWSP","LATI","LIAB","LIDS","LIFR","LIGM","LIGN","LIHL","LIIT","LIPO","LISL","LISP","LTAM","LTCH","LTCO","LTCS","LTEA","LTEN","LTEU","LTFR","LTGK","LTGM","LTKO","LTLA","LTRU","LTSP","LTTH","LTWL","LTWR","MAE","MATH","MATS","MBC","MCWP","MED","MGT","MMW","MSED","MUS","NANO","NEU","NEUG","OPTH","ORTH","PATH","PEDS","PH","PHAR","PHIL","PHYA","PHYS","POLI","PSY","PSYC","RAD","RELI","REV","RMAS","RMED","SE","SIO","SIOB","SIOC","SIOG","SOCE","SOCG","SOCI","SOMC","SOMI","SPPH","SPPS","SURG","SYN","TDAC","TDDE","TDDM","TDDR","TDGE","TDGR","TDHD","TDHT","TDMV","TDPF","TDPR","TDPW","TDTR","TMC","UROL","USP","VIS","WCWP","WES"];
+                                    fields.forEach(field => {
+                                        document.write(`<option value="${field}">${field}</option>`);
+                                    });
+                                </script>
+                            </select>
+                        </div>
+
+                        <!-- Course Number -->
+                        <div>
+                            <label for="course" class="form-label">
+                                <i class="fas fa-hashtag" style="color: var(--ucsd-navy)"></i>
+                                Course Number
+                            </label>
+                            <select id="course" name="course" class="form-input w-full" required>
+                                <option value="">Select course number</option>
+                                <script>
+                                    for (let i = 1; i <= 200; i++) {
+                                        document.write(`<option value="${i}">${i}</option>`);
+                                    }
+                                </script>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center mt-4 sm:mt-6">
+                        <button type="button" id="submit-button" class="btn-primary w-full sm:w-auto px-8 sm:px-12 py-3 sm:py-4 text-base sm:text-lg">
+                            <span id="button-text">
+                                <i class="fas fa-search mr-2"></i>
+                                Analyze Historical Data
+                            </span>
+                            <div class="loading-spinner" id="loading-spinner"></div>
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <!-- Session -->
-            <div>
-                <label for="session" class="block text-sm font-medium text-gray-700">Session</label>
-                <select id="session" name="session" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                    <option value="Summer1">Summer1</option>
-                    <option value="Spring">Spring</option>
-                    <option value="Winter">Winter</option>
-                    <option value="Fall">Fall</option>
-                    <option value="Summer2">Summer2</option>
-                    <option value="Summer3">Summer3</option>
-                </select>
+            <!-- Result Section -->
+            <div id="result" class="glass rounded-3xl p-6 mb-6 fade-in-up hidden">
+                <div id="result-content" class="text-gray-700 leading-relaxed"></div>
+                
+                <!-- Toggle for raw data -->
+                <div class="mt-6 pt-4 border-t border-gray-300">
+                    <div class="text-center">
+                        <button id="toggle-raw-data" class="toggle-btn">
+                            <i class="fas fa-code mr-2"></i>
+                            <span id="toggle-text">Show Raw Data</span>
+                            <i class="fas fa-chevron-down ml-2" id="toggle-icon"></i>
+                        </button>
+                    </div>
+                    <div id="raw-data" class="mt-4 p-4 bg-gray-900 rounded-lg text-xs overflow-auto hidden">
+                        <pre id="raw-data-content" class="text-green-400 font-mono"></pre>
+                    </div>
+                </div>
             </div>
 
-            <!-- Year -->
-            <div>
-                <label for="enrollment_year" class="block text-sm font-medium text-gray-700">Year</label>
-                <select id="enrollment_year" name="enrollment_year" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
-                    <option value="2028">2028</option>
-                </select>
+            <!-- How It Works Section -->
+            <div id="how-it-works" class="glass rounded-3xl p-4 sm:p-6 mb-6">
+                <div class="text-center mb-3 sm:mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                        <i class="fas fa-lightbulb text-yellow-500 mr-2 sm:mr-3"></i>
+                        How It Works
+                    </h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div class="text-center p-4 bg-white bg-opacity-60 rounded-2xl border border-white border-opacity-40">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-database text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Historical Data Analysis</h3>
+                        <p class="text-gray-600 leading-relaxed">We analyze enrollment data from the past 2 years at your exact enrollment time to predict availability.</p>
+                    </div>
+                    
+                    <div class="text-center p-4 bg-white bg-opacity-60 rounded-2xl border border-white border-opacity-40">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-line text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Data Analysis</h3>
+                        <p class="text-gray-600 leading-relaxed">Our algorithm considers enrollment patterns, waitlist activity, and course capacity to provide data-driven insights.</p>
+                    </div>
+                    
+                    <div class="text-center p-4 bg-white bg-opacity-60 rounded-2xl border border-white border-opacity-40">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-user-cog text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Customized Analysis</h3>
+                        <p class="text-gray-600 leading-relaxed">Get analysis based on your specific enrollment time and course selection with historical context.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 border border-blue-200">
+                    <div class="flex flex-col sm:flex-row items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-blue-600 text-2xl mt-1"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800 mb-2">How to Use This Tool</h4>
+                            <ul class="text-gray-700 space-y-2">
+                                <li class="flex items-center gap-2">
+                                    <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                                    <span>Enter your <strong>enrollment time</strong> (when your enrollment window opens)</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                                    <span>Select your <strong>department</strong> and <strong>course number</strong></span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                                    <span>Get detailed analysis with historical enrollment patterns and insights</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Field -->
-            <div>
-                <label for="field" class="block text-sm font-medium text-gray-700">Field</label>
-                <select id="field" name="field" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                    <script>
-                        const fields = ["AAS","AESE","AIP","ANAR","ANBI","ANES","ANSC","ANTH","AUD","AWP","BENG","BGGN","BGJC","BGRD","BGSE","BIBC","BICD","BIEB","BILD","BIMM","BIOM","BIPN","BISP","BNFO","CAT","CCE","CCS","CENG","CGS","CHEM","CHIN","CLAS","CLIN","CLRE","CMM","COGR","COGS","COMM","CSE","CSS","DDPM","DERM","DOC","DSC","DSE","DSGN","ECE","ECON","EDS","EMED","ENG","ENVR","ERC","ESYS","ETHN","ETIM","EXPR","FILM","FMPH","FPM","GLBH","GSS","HDS","HIAF","HIEA","HIEU","HIGL","HIGR","HILA","HILD","HINE","HISC","HITO","HIUS","HUM","INTL","JAPN","JWSP","LATI","LIAB","LIDS","LIFR","LIGM","LIGN","LIHL","LIIT","LIPO","LISL","LISP","LTAM","LTCH","LTCO","LTCS","LTEA","LTEN","LTEU","LTFR","LTGK","LTGM","LTKO","LTLA","LTRU","LTSP","LTTH","LTWL","LTWR","MAE","MATH","MATS","MBC","MCWP","MED","MGT","MMW","MSED","MUS","NANO","NEU","NEUG","OPTH","ORTH","PATH","PEDS","PH","PHAR","PHIL","PHYA","PHYS","POLI","PSY","PSYC","RAD","RELI","REV","RMAS","RMED","SE","SIO","SIOB","SIOC","SIOG","SOCE","SOCG","SOCI","SOMC","SOMI","SPPH","SPPS","SURG","SYN","TDAC","TDDE","TDDM","TDDR","TDGE","TDGR","TDHD","TDHT","TDMV","TDPF","TDPR","TDPW","TDTR","TMC","UROL","USP","VIS","WCWP","WES"];
-                        fields.forEach(field => {
-                            document.write(`<option value="${field}">${field}</option>`);
-                        });
-                    </script>
-                </select>
+            <!-- Features Section -->
+            <div class="glass rounded-3xl p-4 sm:p-6 mb-6">
+                <div class="text-center mb-4 sm:mb-6">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                        <i class="fas fa-star text-yellow-500 mr-2 sm:mr-3"></i>
+                        Why Use Our Analysis Tool?
+                    </h2>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="text-center p-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-clock text-white"></i>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-2">Historical Data</h4>
+                        <p class="text-gray-600 text-sm">Based on actual UCSD enrollment patterns</p>
+                    </div>
+                    
+                    <div class="text-center p-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-shield-alt text-white"></i>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-2">Data-Driven Analysis</h4>
+                        <p class="text-gray-600 text-sm">Predictions based on historical enrollment patterns</p>
+                    </div>
+                    
+                    <div class="text-center p-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-graduation-cap text-white"></i>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-2">Student-Friendly</h4>
+                        <p class="text-gray-600 text-sm">Designed specifically for UCSD students</p>
+                    </div>
+                    
+                    <div class="text-center p-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-rocket text-white"></i>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-2">Instant Results</h4>
+                        <p class="text-gray-600 text-sm">Get your analysis in seconds</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-4 border border-indigo-200">
+                    <div class="text-center">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Ready to Plan Your Enrollment?</h4>
+                        <p class="text-gray-600">Use historical data analysis to make informed course selection decisions.</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Course Number -->
-            <div>
-                <label for="course" class="block text-sm font-medium text-gray-700">Course Number</label>
-                <select id="course" name="course" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                    <script>
-                        for (let i = 1; i <= 200; i++) {
-                            document.write(`<option value="${i}">${i}</option>`);
-                        }
-                    </script>
-                </select>
-            </div>
-
-            <!-- Submit Button -->
-            <div>
-                <button type="button" id="submit-button" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Submit</button>
-            </div>
-        </form>
-
-        <!-- Result Section -->
-        <div id="result" class="mt-6 p-6 bg-white shadow-lg rounded-lg border hidden">
-            <div id="result-content" class="text-gray-700 leading-relaxed"></div>
-            
-            <!-- Toggle for raw data -->
-            <div class="mt-6 pt-4 border-t border-gray-200">
-                <button id="toggle-raw-data" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium transition-colors">
-                    Show Raw Data ▼
-                </button>
-                <div id="raw-data" class="mt-3 p-4 bg-gray-50 rounded border text-xs overflow-auto hidden">
-                    <pre id="raw-data-content" class="text-gray-600"></pre>
+            <!-- Tips Section -->
+            <div id="enrollment-tips" class="glass rounded-3xl p-4 sm:p-6 mb-6">
+                <div class="text-center mb-3 sm:mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                        <i class="fas fa-lightbulb text-yellow-500 mr-2 sm:mr-3"></i>
+                        Enrollment Tips & Strategies
+                    </h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <div class="bg-white bg-opacity-60 rounded-2xl p-4 border border-white border-opacity-40">
+                        <h4 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-trophy text-yellow-500"></i>
+                            Best Practices
+                        </h4>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-500 mt-1 text-sm flex-shrink-0"></i>
+                                <span>Always have backup courses ready before your enrollment time</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-500 mt-1 text-sm flex-shrink-0"></i>
+                                <span>Check prerequisites and time conflicts in advance</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-500 mt-1 text-sm flex-shrink-0"></i>
+                                <span>Enroll in high-demand courses first during your window</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-500 mt-1 text-sm flex-shrink-0"></i>
+                                <span>Use multiple devices/browsers for critical course enrollment</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white bg-opacity-60 rounded-2xl p-4 border border-white border-opacity-40">
+                        <h4 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-exclamation-triangle text-orange-500"></i>
+                            What to Watch Out For
+                        </h4>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-times-circle text-red-500 mt-1 text-sm flex-shrink-0"></i>
+                                <span>Don't rely solely on waitlists for required courses</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-times-circle text-red-500 mt-1 text-sm flex-shrink-0"></i>
+                                <span>Avoid enrolling too close to the add/drop deadline</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-times-circle text-red-500 mt-1 text-sm flex-shrink-0"></i>
+                                <span>Don't forget to check for course time conflicts</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-times-circle text-red-500 mt-1 text-sm flex-shrink-0"></i>
+                                <span>Don't wait until the last minute to plan your schedule</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Footer -->
+        <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-6 sm:py-8 mt-6 sm:mt-8 mx-1 sm:mx-2 rounded-3xl">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                    <div class="md:col-span-2">
+                        <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-graduation-cap text-blue-900 text-sm sm:text-base"></i>
+                            </div>
+                            <h3 class="text-lg sm:text-2xl font-bold text-yellow-400">UCSD Enrollment Predictor</h3>
+                        </div>
+                        <p class="text-gray-300 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
+                            Helping UCSD students make informed enrollment decisions with historical data analysis 
+                            and strategic course planning advice.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-yellow-400">Navigation</h4>
+                        <ul class="space-y-2 sm:space-y-3 text-gray-300 text-sm sm:text-base">
+                            <li><a href="#analyze-form" class="hover:text-yellow-400 transition-colors flex items-center gap-2">
+                                <i class="fas fa-search text-xs sm:text-sm"></i>Course Analysis</a></li>
+                            <li><a href="#how-it-works" class="hover:text-yellow-400 transition-colors flex items-center gap-2">
+                                <i class="fas fa-lightbulb text-xs sm:text-sm"></i>How It Works</a></li>
+                            <li><a href="#enrollment-tips" class="hover:text-yellow-400 transition-colors flex items-center gap-2">
+                                <i class="fas fa-tips text-xs sm:text-sm"></i>Enrollment Tips</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-700 mt-4 sm:mt-6 pt-4 sm:pt-6 text-center">
+                    <p class="text-gray-400 mb-1 sm:mb-2 text-sm sm:text-base">&copy; 2024 UCSD Enrollment Predictor. Built with 💙💛 for UCSD students.</p>
+                    <p class="text-gray-500 text-xs sm:text-sm">Unofficial tool - Not affiliated with UC San Diego administration</p>
+                </div>
+            </div>
+        </footer>
     </div>
     <script>
         document.getElementById('submit-button').addEventListener('click', () => {
@@ -170,6 +648,23 @@
             const enrollmentYear = document.getElementById('enrollment_year').value;
             const field = document.getElementById('field').value;
             const course = document.getElementById('course').value;
+
+            // Validation
+            if (!enrollmentTime || !session || !enrollmentYear || !field || !course) {
+                alert('Please fill in all fields before submitting.');
+                return;
+            }
+
+            // Show loading state
+            const submitButton = document.getElementById('submit-button');
+            const buttonText = document.getElementById('button-text');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const resultSection = document.getElementById('result');
+            
+            submitButton.disabled = true;
+            buttonText.style.display = 'none';
+            loadingSpinner.style.display = 'inline-block';
+            resultSection.classList.add('hidden');
 
             const url = `http://127.0.0.1:5000/search?session=${encodeURIComponent(session)}&enrollment_time=${encodeURIComponent(enrollmentTime)}&enrollment_year=${encodeURIComponent(enrollmentYear)}&field=${encodeURIComponent(field)}&course=${encodeURIComponent(course)}`;
 
@@ -182,6 +677,11 @@
                     
                     if (data.analysis) {
                         const analysis = data.analysis;
+                        
+                        // Helper function to format quarter strings (e.g., "2025Winter" -> "2025 Winter")
+                        function formatQuarter(quarter) {
+                            return quarter.replace(/([0-9]{4})([A-Za-z]+)/, '$1 $2');
+                        }
                         
                         // Clear content and build HTML step by step
                         resultContent.innerHTML = '';
@@ -214,7 +714,8 @@
                         
                         // Year 1 data
                         const year1Item = document.createElement('li');
-                        let year1Text = analysis.year_1.quarter + ': ' + analysis.year_1.enrolled + ' students enrolled out of ' + analysis.year_1.total + ' total seats (' + analysis.year_1.percentage + '% full)';
+                        const formattedQuarter1 = formatQuarter(analysis.year_1.quarter);
+                        let year1Text = formattedQuarter1 + ': ' + analysis.year_1.enrolled + ' students enrolled out of ' + analysis.year_1.total + ' total seats (' + analysis.year_1.percentage + '% full)';
                         if (analysis.year_1.waitlist > 0) {
                             year1Text += ', with ' + analysis.year_1.waitlist + ' students on the waitlist';
                         }
@@ -222,12 +723,13 @@
                             year1Text += ', and ' + analysis.year_1.available + ' seats still available';
                         }
                         year1Text += '.';
-                        year1Item.innerHTML = '<strong>' + analysis.year_1.quarter + '</strong>: ' + year1Text.substring(analysis.year_1.quarter.length + 2);
+                        year1Item.innerHTML = '<strong>' + formattedQuarter1 + '</strong>: ' + year1Text.substring(formattedQuarter1.length + 2);
                         dataList.appendChild(year1Item);
                         
                         // Year 2 data
                         const year2Item = document.createElement('li');
-                        let year2Text = analysis.year_2.quarter + ': ' + analysis.year_2.enrolled + ' students enrolled out of ' + analysis.year_2.total + ' total seats (' + analysis.year_2.percentage + '% full)';
+                        const formattedQuarter2 = formatQuarter(analysis.year_2.quarter);
+                        let year2Text = formattedQuarter2 + ': ' + analysis.year_2.enrolled + ' students enrolled out of ' + analysis.year_2.total + ' total seats (' + analysis.year_2.percentage + '% full)';
                         if (analysis.year_2.waitlist > 0) {
                             year2Text += ', with ' + analysis.year_2.waitlist + ' students on the waitlist';
                         }
@@ -235,7 +737,7 @@
                             year2Text += ', and ' + analysis.year_2.available + ' seats still available';
                         }
                         year2Text += '.';
-                        year2Item.innerHTML = '<strong>' + analysis.year_2.quarter + '</strong>: ' + year2Text.substring(analysis.year_2.quarter.length + 2);
+                        year2Item.innerHTML = '<strong>' + formattedQuarter2 + '</strong>: ' + year2Text.substring(formattedQuarter2.length + 2);
                         dataList.appendChild(year2Item);
                         
                         histSection.appendChild(dataList);
@@ -315,7 +817,7 @@
                         // Footer
                         const footer = document.createElement('div');
                         footer.className = 'footer';
-                        footer.innerHTML = '<em>Analysis based on enrollment data from ' + analysis.year_1.quarter + ' and ' + analysis.year_2.quarter + ' at your specified enrollment time.</em>';
+                        footer.innerHTML = '<em>Analysis based on enrollment data from ' + formatQuarter(analysis.year_1.quarter) + ' and ' + formatQuarter(analysis.year_2.quarter) + ' at your specified enrollment time.</em>';
                         container.appendChild(footer);
                         
                         resultContent.appendChild(container);
@@ -334,29 +836,87 @@
                     }
                     
                     resultSection.classList.remove('hidden');
+                    
+                    // Reset loading state
+                    submitButton.disabled = false;
+                    buttonText.style.display = 'inline';
+                    loadingSpinner.style.display = 'none';
+                    
+                    // Smooth scroll to results
+                    setTimeout(scrollToResults, 100);
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     const resultSection = document.getElementById('result');
                     const resultContent = document.getElementById('result-content');
-                    resultContent.innerHTML = '<div class="text-red-600 bg-red-50 p-4 rounded border border-red-200">❌ <strong>An error occurred while fetching the data:</strong> ' + error.message + '</div>';
+                    resultContent.innerHTML = '<div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg"><div class="flex"><div class="flex-shrink-0"><i class="fas fa-exclamation-triangle text-red-400"></i></div><div class="ml-3"><h3 class="text-sm font-medium text-red-800">Error occurred</h3><div class="mt-2 text-sm text-red-700">' + error.message + '</div></div></div></div>';
                     resultSection.classList.remove('hidden');
+                    
+                    // Reset loading state
+                    submitButton.disabled = false;
+                    buttonText.style.display = 'inline';
+                    loadingSpinner.style.display = 'none';
                 });
         });
 
-        // Toggle raw data visibility
+        // Toggle raw data visibility with enhanced animations
         document.getElementById('toggle-raw-data').addEventListener('click', () => {
             const rawDataDiv = document.getElementById('raw-data');
-            const toggleButton = document.getElementById('toggle-raw-data');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleIcon = document.getElementById('toggle-icon');
             
             if (rawDataDiv.classList.contains('hidden')) {
                 rawDataDiv.classList.remove('hidden');
-                toggleButton.textContent = 'Hide Raw Data ▲';
+                toggleText.textContent = 'Hide Raw Data';
+                toggleIcon.className = 'fas fa-chevron-up ml-2';
+                rawDataDiv.style.maxHeight = '400px';
+                rawDataDiv.style.opacity = '1';
             } else {
                 rawDataDiv.classList.add('hidden');
-                toggleButton.textContent = 'Show Raw Data ▼';
+                toggleText.textContent = 'Show Raw Data';
+                toggleIcon.className = 'fas fa-chevron-down ml-2';
             }
         });
+
+        // Add smooth scrolling to results
+        function scrollToResults() {
+            const resultSection = document.getElementById('result');
+            if (!resultSection.classList.contains('hidden')) {
+                setTimeout(() => {
+                    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 200);
+            }
+        }
+
+        // Enhance form interactivity
+        const formInputs = document.querySelectorAll('.form-input');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+                this.parentElement.style.transition = 'transform 0.3s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add smooth scrolling behavior to the page
+        document.documentElement.style.scrollBehavior = 'smooth';
     </script>
 </body>
 </html>
